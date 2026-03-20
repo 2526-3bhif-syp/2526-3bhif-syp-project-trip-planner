@@ -1,0 +1,30 @@
+= Pflichtenheft – Trip-Planner
+
+== Ausgangssituation
+Die HTL Leonding ist eine HTL im oö. Zentralraum mit ca. 1000 Schülern und den Fachabteilungen Medientechnik, Informatik, Medizintechnik und Elektronik.
+
+== Istzustand
+In der Schule informieren die Lehrkräfte die Schülerinnen und Schüler persönlich im Unterricht darüber, wann und wo der Treffpunkt für eine Reise oder einen Ausflug ist und welches Ziel geplant ist. Die Schülerinnen und Schüler passen sich dabei den vorgegebenen Zeiten und Treffpunkten an.
+
+== Problemstellung
+Oft gibt es Schülerinnen und Schüler, die im Unterricht abwesend sind. Dadurch besteht die Möglichkeit, dass sie wichtige Informationen über Treffpunkte oder Uhrzeiten nicht mitbekommen.
+
+Außerdem kommt es vor, dass Schülerinnen und Schüler den Treffpunkt oder die genaue Uhrzeit vergessen. Dies kann zu Verwirrung und organisatorischen Problemen bei Ausflügen oder Reisen führen.
+
+== Aufgabenstellung
+Ziel des Projekts „Trip-Planner“ ist die Entwicklung einer webbasierten Anwendung zur strukturierten Planung und Organisation von Schulreisen.
+
+Die Anwendung richtet sich speziell an Lehrpersonen, die Reisen oder Ausflüge planen und koordinieren möchten. Dabei sollen Treffpunkte zeitlich und örtlich definiert werden können.
+
+Schülerinnen und Schüler erhalten Zugriff auf relevante Informationen zur Reise. Um eine geordnete Durchführung zu gewährleisten, soll jeweils nur der aktuell gültige Treffpunkt für die Teilnehmer sichtbar sein.
+
+Die Anwendung dient der besseren Organisation, Übersichtlichkeit und Kommunikation zwischen Reiseleitung und Teilnehmern.
+
+== Funktionale Anforderungen
+
+* Das System muss es ermöglichen, eine Reise für schulische Zwecke zu erstellen.
+* Zu einer Reise müssen mehrere Treffpunkte hinzugefügt werden können.
+* Jeder Treffpunkt muss einen definierten Ort sowie einen festgelegten Zeitpunkt enthalten.
+* Teilnehmer müssen die allgemeinen Ausflugsziele einsehen können, jedoch ohne genaue Zeitangaben.
+* Der Reiseleiter muss jeweils einen Treffpunkt als aktuell gültig freischalten können.
+* Für die Teilnehmer darf immer nur der aktuell freigeschaltete Treffpunkt sichtbar sein.
