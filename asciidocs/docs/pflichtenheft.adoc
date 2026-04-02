@@ -35,4 +35,4 @@ Die Anwendung dient der besseren Organisation, Übersichtlichkeit und Kommunikat
 
 == Usecase-Diagramm
 
-image::asciidocs/docs/images/usecase.png[width=70%]
+image::asciidocs/docs/images/usecase.png[]
