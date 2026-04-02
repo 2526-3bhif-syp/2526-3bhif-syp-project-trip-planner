@@ -28,3 +28,7 @@ Die Anwendung dient der besseren Organisation, Übersichtlichkeit und Kommunikat
 * Teilnehmer müssen die allgemeinen Ausflugsziele einsehen können, jedoch ohne genaue Zeitangaben.
 * Der Reiseleiter muss jeweils einen Treffpunkt als aktuell gültig freischalten können.
 * Für die Teilnehmer darf immer nur der aktuell freigeschaltete Treffpunkt sichtbar sein.
+
+== Usecase-Diagramm
+
+image::../../img/usecase.png[Use Case Diagramm, width=600]
