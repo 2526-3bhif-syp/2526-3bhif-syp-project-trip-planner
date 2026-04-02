@@ -1,3 +1,5 @@
+:imagesdir: ../../img
+
 = Pflichtenheft – Trip-Planner
 
 == Ausgangssituation
@@ -31,4 +33,4 @@ Die Anwendung dient der besseren Organisation, Übersichtlichkeit und Kommunikat
 
 == Usecase-Diagramm
 
-image::../../img/usecase.png[Use Case Diagramm, width=600]
+image::usecase.png[Use Case Diagramm, width=600]
