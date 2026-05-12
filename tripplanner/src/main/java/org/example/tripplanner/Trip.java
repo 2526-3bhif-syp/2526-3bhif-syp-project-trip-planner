@@ -1,33 +1,42 @@
 package org.example.tripplanner;
 
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+
 import java.time.LocalDate;
 
 public class Trip {
-    private LocalDate startDatum;
-    private LocalDate endDatum;
-    private String beschreibung;
+    private LocalDate startDate;
+    private LocalDate endDate;
+    private String description;
+    private ObservableList<MeetingPoint> meetingPoints = FXCollections.observableArrayList();
 
-    public Trip(LocalDate startDatum, LocalDate endDatum, String beschreibung) {
-        this.startDatum = startDatum;
-        this.endDatum = endDatum;
-        this.beschreibung = beschreibung;
+    public Trip(LocalDate startDate, LocalDate endDate, String description) {
+        this.startDate = startDate;
+        this.endDate = endDate;
+        this.description = description;
     }
 
-    public LocalDate getStartDatum() {
-        return startDatum;
+    public LocalDate getStartDate() {
+        return startDate;
     }
 
-    public LocalDate getEndDatum() {
-        return endDatum;
+    public LocalDate getEndDate() {
+        return endDate;
     }
 
-    public String getBeschreibung() {
-        return beschreibung;
+    public String getDescription() {
+        return description;
+    }
+
+    public ObservableList<MeetingPoint> getMeetingPoints() {
+        return meetingPoints;
     }
 
     @Override
     public String toString() {
-        return startDatum + " - " + endDatum +
-                (beschreibung.isEmpty() ? "" : " | " + beschreibung);
+        return startDate + " - " + endDate +
+                (description.isEmpty() ? "" : " | " + description) +
+                " (" + meetingPoints.size() + " meeting point(s))";
     }
 }
