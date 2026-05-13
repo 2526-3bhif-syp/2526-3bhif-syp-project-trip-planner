@@ -2,7 +2,6 @@ package org.example.tripplanner;
 
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
-import javafx.animation.RotateTransition;
 import javafx.animation.ScaleTransition;
 import javafx.animation.Timeline;
 import javafx.application.Application;
@@ -25,6 +24,7 @@ import java.time.temporal.ChronoUnit;
 public class TripApp extends Application {
 
     private ObservableList<Trip> trips = FXCollections.observableArrayList();
+    private StackPane tripListOverlay;
 
     @Override
     public void start(Stage stage) {
@@ -32,6 +32,42 @@ public class TripApp extends Application {
 
         ListView<Trip> tripListView = new ListView<>(trips);
         VBox.setVgrow(tripListView, Priority.ALWAYS);
+
+        // Double-click to edit
+        tripListView.setOnMouseClicked(e -> {
+            if (e.getClickCount() == 2 && tripListView.getSelectionModel().getSelectedItem() != null) {
+                openTripDialog(tripListView.getSelectionModel().getSelectedItem());
+            }
+        });
+
+        // --- Navbar ---
+        Button navBtn = new Button();
+        navBtn.setStyle(
+                "-fx-background-color: transparent;" +
+                        "-fx-cursor: hand;" +
+                        "-fx-padding: 4 6 4 6;"
+        );
+        VBox burgerIcon = new VBox(5);
+        burgerIcon.setAlignment(Pos.CENTER);
+        for (int i = 0; i < 3; i++) {
+            Region line = new Region();
+            line.setPrefSize(22, 3);
+            line.setStyle("-fx-background-color: #7F00FF; -fx-background-radius: 2;");
+            burgerIcon.getChildren().add(line);
+        }
+        navBtn.setGraphic(burgerIcon);
+
+        Label navTitle = new Label("Trip Planner");
+        navTitle.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #7F00FF;");
+
+        HBox navbar = new HBox(10, navBtn, navTitle);
+        navbar.setAlignment(Pos.CENTER_LEFT);
+        navbar.setPadding(new Insets(12, 16, 12, 16));
+        navbar.setStyle(
+                "-fx-background-color: white;" +
+                        "-fx-border-color: #e0e0e0;" +
+                        "-fx-border-width: 0 0 1 0;"
+        );
 
         // --- Plus Button ---
         Button createTripButton = new Button("+");
@@ -48,7 +84,6 @@ public class TripApp extends Application {
                         "-fx-effect: dropshadow(gaussian, rgba(127,0,255,0.4), 10, 0, 0, 3);"
         );
 
-        // Hover Animation
         ScaleTransition hoverIn = new ScaleTransition(Duration.millis(150), createTripButton);
         hoverIn.setToX(1.15);
         hoverIn.setToY(1.15);
@@ -60,7 +95,6 @@ public class TripApp extends Application {
         createTripButton.setOnMouseEntered(e -> { hoverOut.stop(); hoverIn.play(); });
         createTripButton.setOnMouseExited(e -> { hoverIn.stop(); hoverOut.play(); });
 
-        // Wobble Animation beim Klick
         createTripButton.setOnAction(e -> {
             Timeline wobble = new Timeline(
                     new KeyFrame(Duration.millis(0),   new KeyValue(createTripButton.rotateProperty(), 0)),
@@ -78,18 +112,65 @@ public class TripApp extends Application {
         buttonBox.setAlignment(Pos.CENTER_RIGHT);
         buttonBox.setPadding(new Insets(8, 0, 0, 0));
 
-        // Double-click to edit
-        tripListView.setOnMouseClicked(e -> {
-            if (e.getClickCount() == 2 && tripListView.getSelectionModel().getSelectedItem() != null) {
-                openTripDialog(tripListView.getSelectionModel().getSelectedItem());
-            }
-        });
+        // --- Hauptinhalt (Placeholder) ---
+        Label placeholderLabel = new Label("No content yet.");
+        placeholderLabel.setStyle("-fx-text-fill: #aaa; -fx-font-size: 14px;");
+        StackPane mainArea = new StackPane(placeholderLabel);
+        VBox.setVgrow(mainArea, Priority.ALWAYS);
 
-        VBox root = new VBox(10, tripListView, buttonBox);
-        root.setPadding(new Insets(20));
+        VBox mainContent = new VBox(0, navbar, mainArea, buttonBox);
+        mainContent.setPadding(new Insets(0, 20, 20, 20));
 
-        stage.setScene(new Scene(root, 450, 350));
+        // --- Trip List Overlay ---
+        tripListOverlay = buildTripListOverlay(tripListView);
+        tripListOverlay.setVisible(false);
+
+        navBtn.setOnAction(e -> tripListOverlay.setVisible(true));
+
+        StackPane root = new StackPane(mainContent, tripListOverlay);
+
+        stage.setScene(new Scene(root, 450, 400));
         stage.show();
+    }
+
+    private StackPane buildTripListOverlay(ListView<Trip> tripListView) {
+        VBox.setVgrow(tripListView, Priority.ALWAYS);
+
+        Button closeBtn = new Button("✕");
+        closeBtn.setStyle(
+                "-fx-background-color: transparent;" +
+                        "-fx-font-size: 16px;" +
+                        "-fx-cursor: hand;" +
+                        "-fx-text-fill: #555;"
+        );
+
+        Label heading = new Label("Your Trips");
+        heading.setStyle("-fx-font-size: 15px; -fx-font-weight: bold;");
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        HBox header = new HBox(heading, spacer, closeBtn);
+        header.setAlignment(Pos.CENTER_LEFT);
+
+        VBox card = new VBox(12, header, tripListView);
+        card.setPadding(new Insets(20));
+        card.setMaxWidth(320);
+        card.setMaxHeight(300);
+        card.setStyle(
+                "-fx-background-color: white;" +
+                        "-fx-background-radius: 12;" +
+                        "-fx-border-radius: 12;" +
+                        "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.25), 20, 0, 0, 4);"
+        );
+
+        StackPane overlay = new StackPane(card);
+        overlay.setStyle("-fx-background-color: rgba(0,0,0,0.45);");
+        overlay.setOnMouseClicked(e -> e.consume());
+
+        closeBtn.setOnAction(e -> tripListOverlay.setVisible(false));
+
+        return overlay;
     }
 
     private void openTripDialog(Trip existing) {
