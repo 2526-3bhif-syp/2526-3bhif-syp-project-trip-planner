@@ -12,8 +12,6 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.Circle;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
@@ -22,10 +20,16 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoUnit;
+import java.util.Comparator;
 
 public class TripApp extends Application {
 
-    private final ObservableList<Trip> trips = TripStorage.load();
+    private final ObservableList<Trip> trips = FXCollections.observableArrayList(
+            TripStorage.load().stream()
+                    .sorted(Comparator.comparing(Trip::getStartDate))
+                    .toList()
+    );
+
     private StackPane tripListOverlay;
     private StackPane tripFormOverlay;
 
@@ -62,6 +66,7 @@ public class TripApp extends Application {
         HBox navbar = new HBox(10, navBtn, navTitle);
         navbar.setAlignment(Pos.CENTER_LEFT);
         navbar.setPadding(new Insets(12, 16, 12, 16));
+        navbar.setMaxWidth(Double.MAX_VALUE);
         navbar.setStyle(
                 "-fx-background-color: white;" +
                         "-fx-border-color: #e0e0e0;" +
@@ -102,15 +107,17 @@ public class TripApp extends Application {
 
         HBox buttonBox = new HBox(createTripButton);
         buttonBox.setAlignment(Pos.CENTER_RIGHT);
-        buttonBox.setPadding(new Insets(8, 0, 0, 0));
+        buttonBox.setPadding(new Insets(0, 20, 20, 20));
 
         Label placeholderLabel = new Label("Press + to create a trip.");
         placeholderLabel.setStyle("-fx-text-fill: #aaa; -fx-font-size: 14px;");
         StackPane mainArea = new StackPane(placeholderLabel);
+        mainArea.setPadding(new Insets(20));
         VBox.setVgrow(mainArea, Priority.ALWAYS);
 
         VBox mainContent = new VBox(0, navbar, mainArea, buttonBox);
-        mainContent.setPadding(new Insets(0, 20, 20, 20));
+        mainContent.setMaxWidth(Double.MAX_VALUE);
+        VBox.setVgrow(mainContent, Priority.ALWAYS);
 
         tripListOverlay = buildTripListOverlay(tripListView);
         tripListOverlay.setVisible(false);
@@ -144,13 +151,11 @@ public class TripApp extends Application {
                 return;
             }
 
-            // Left accent bar
             Region accent = new Region();
             accent.setPrefWidth(4);
             accent.setPrefHeight(48);
             accent.setStyle("-fx-background-color: #7F00FF; -fx-background-radius: 4 0 0 4;");
 
-            // Date badge
             long days = ChronoUnit.DAYS.between(trip.getStartDate(), trip.getEndDate());
             Label daysLabel = new Label(days + "d");
             daysLabel.setStyle(
@@ -162,20 +167,16 @@ public class TripApp extends Application {
                             "-fx-background-radius: 20;"
             );
 
-            // Title row
             String title = (trip.getDescription() != null && !trip.getDescription().isBlank())
-                    ? trip.getDescription()
-                    : "Trip";
+                    ? trip.getDescription() : "Trip";
             Label nameLabel = new Label(title);
             nameLabel.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #222;");
 
-            // Date range
             Label dateLabel = new Label(
                     trip.getStartDate().format(fmt) + "  →  " + trip.getEndDate().format(fmt)
             );
             dateLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #888;");
 
-            // Meeting point count badge
             int mpCount = trip.getMeetingPoints().size();
             Label mpLabel = new Label(mpCount + " stop" + (mpCount == 1 ? "" : "s"));
             mpLabel.setStyle(
@@ -237,7 +238,6 @@ public class TripApp extends Application {
     }
 
     private VBox buildTripFormCard(Trip existing) {
-        // ── Styled inputs ──
         DatePicker startDatePicker = styledDatePicker("Start date");
         DatePicker endDatePicker   = styledDatePicker("End date");
         TextField  descriptionField = styledTextField("Description (optional)");
@@ -350,7 +350,6 @@ public class TripApp extends Application {
         mpListView.setUserData(travelLabel);
         updateTravelDurationLabel(meetingPoints, mpListView);
 
-        // ── Save / Cancel ──
         Button saveBtn = new Button("Save Trip");
         saveBtn.setStyle(
                 "-fx-background-color: #7F00FF; -fx-text-fill: white;" +
@@ -394,6 +393,7 @@ public class TripApp extends Application {
                 trips.add(newTrip);
             }
 
+            FXCollections.sort(trips, Comparator.comparing(Trip::getStartDate));
             TripStorage.save(trips);
             tripFormOverlay.setVisible(false);
         });
@@ -406,7 +406,6 @@ public class TripApp extends Application {
         HBox btnRow = new HBox(10, saveBtn, cancelBtn);
         btnRow.setAlignment(Pos.CENTER_RIGHT);
 
-        // ── Section labels ──
         Label cardTitle = new Label(existing == null ? "✈  New Trip" : "✏  Edit Trip");
         cardTitle.setStyle("-fx-font-size: 17px; -fx-font-weight: bold; -fx-text-fill: #222;");
 
