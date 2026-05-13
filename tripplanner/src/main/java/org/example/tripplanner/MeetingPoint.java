@@ -4,6 +4,7 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 
 public class MeetingPoint {
+
     private String location;
     private LocalTime time;
 
@@ -12,21 +13,11 @@ public class MeetingPoint {
         this.time = time;
     }
 
-    public String getLocation() {
-        return location;
-    }
+    public String getLocation() { return location; }
+    public void setLocation(String location) { this.location = location; }
 
-    public void setLocation(String location) {
-        this.location = location;
-    }
-
-    public LocalTime getTime() {
-        return time;
-    }
-
-    public void setTime(LocalTime time) {
-        this.time = time;
-    }
+    public LocalTime getTime() { return time; }
+    public void setTime(LocalTime time) { this.time = time; }
 
     @Override
     public String toString() {

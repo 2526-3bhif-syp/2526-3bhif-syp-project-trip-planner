@@ -23,7 +23,8 @@ import java.time.temporal.ChronoUnit;
 
 public class TripApp extends Application {
 
-    private ObservableList<Trip> trips = FXCollections.observableArrayList();
+    private final ObservableList<Trip> trips = TripStorage.load();
+
     private StackPane tripListOverlay;
     private StackPane tripFormOverlay;
 
@@ -40,7 +41,6 @@ public class TripApp extends Application {
             }
         });
 
-        // --- Navbar ---
         Button navBtn = new Button();
         navBtn.setStyle("-fx-background-color: transparent; -fx-cursor: hand; -fx-padding: 4 6 4 6;");
         VBox burgerIcon = new VBox(5);
@@ -65,7 +65,6 @@ public class TripApp extends Application {
                         "-fx-border-width: 0 0 1 0;"
         );
 
-        // --- Plus Button ---
         Button createTripButton = new Button("+");
         createTripButton.setStyle(
                 "-fx-background-radius: 50em;" +
@@ -76,13 +75,13 @@ public class TripApp extends Application {
                         "-fx-effect: dropshadow(gaussian, rgba(127,0,255,0.4), 10, 0, 0, 3);"
         );
 
-        ScaleTransition hoverIn = new ScaleTransition(Duration.millis(150), createTripButton);
+        ScaleTransition hoverIn  = new ScaleTransition(Duration.millis(150), createTripButton);
         hoverIn.setToX(1.15); hoverIn.setToY(1.15);
         ScaleTransition hoverOut = new ScaleTransition(Duration.millis(150), createTripButton);
         hoverOut.setToX(1.0); hoverOut.setToY(1.0);
 
         createTripButton.setOnMouseEntered(e -> { hoverOut.stop(); hoverIn.play(); });
-        createTripButton.setOnMouseExited(e -> { hoverIn.stop(); hoverOut.play(); });
+        createTripButton.setOnMouseExited(e  -> { hoverIn.stop();  hoverOut.play(); });
 
         createTripButton.setOnAction(e -> {
             Timeline wobble = new Timeline(
@@ -101,7 +100,7 @@ public class TripApp extends Application {
         buttonBox.setAlignment(Pos.CENTER_RIGHT);
         buttonBox.setPadding(new Insets(8, 0, 0, 0));
 
-        Label placeholderLabel = new Label("No content yet.");
+        Label placeholderLabel = new Label("Press + to create a trip.");
         placeholderLabel.setStyle("-fx-text-fill: #aaa; -fx-font-size: 14px;");
         StackPane mainArea = new StackPane(placeholderLabel);
         VBox.setVgrow(mainArea, Priority.ALWAYS);
@@ -109,7 +108,6 @@ public class TripApp extends Application {
         VBox mainContent = new VBox(0, navbar, mainArea, buttonBox);
         mainContent.setPadding(new Insets(0, 20, 20, 20));
 
-        // --- Overlays ---
         tripListOverlay = buildTripListOverlay(tripListView);
         tripListOverlay.setVisible(false);
 
@@ -146,8 +144,8 @@ public class TripApp extends Application {
 
     private VBox buildTripFormCard(Trip existing) {
         DatePicker startDatePicker = new DatePicker();
-        DatePicker endDatePicker = new DatePicker();
-        TextField descriptionField = new TextField();
+        DatePicker endDatePicker   = new DatePicker();
+        TextField  descriptionField = new TextField();
 
         startDatePicker.setPromptText("Start date");
         endDatePicker.setPromptText("End date");
@@ -159,9 +157,10 @@ public class TripApp extends Application {
             descriptionField.setText(existing.getDescription());
         }
 
-        ObservableList<MeetingPoint> meetingPoints = FXCollections.observableArrayList(
-                existing != null ? existing.getMeetingPoints() : FXCollections.emptyObservableList()
-        );
+        ObservableList<MeetingPoint> meetingPoints = FXCollections.observableArrayList();
+        if (existing != null) {
+            meetingPoints.addAll(existing.getMeetingPoints());
+        }
 
         ListView<MeetingPoint> meetingPointListView = new ListView<>(meetingPoints);
         meetingPointListView.setPrefHeight(120);
@@ -172,19 +171,22 @@ public class TripApp extends Application {
         timeField.setPromptText("Time (HH:mm)");
 
         Button addMeetingPointButton = new Button("Add");
-        Label meetingPointErrorLabel = new Label();
+        Label  meetingPointErrorLabel = new Label();
         meetingPointErrorLabel.setStyle("-fx-text-fill: red; -fx-font-size: 11px;");
 
         timeField.focusedProperty().addListener((obs, oldVal, newVal) -> {
             if (!newVal && !timeField.getText().isBlank()) {
                 try {
-                    LocalTime.parse(timeField.getText(), DateTimeFormatter.ofPattern("HH:mm"));
+                    LocalTime.parse(timeField.getText().trim(), DateTimeFormatter.ofPattern("HH:mm"));
                     timeField.setStyle("");
                 } catch (DateTimeParseException ex) {
                     timeField.setStyle("-fx-border-color: red;");
                 }
             }
         });
+
+        timeField.setOnAction(e -> addMeetingPointButton.fire());
+        locationField.setOnAction(e -> addMeetingPointButton.fire());
 
         addMeetingPointButton.setOnAction(e -> {
             String location = locationField.getText().trim();
@@ -206,9 +208,9 @@ public class TripApp extends Application {
             }
         });
 
-        Button moveUpButton = new Button("▲");
+        Button moveUpButton   = new Button("▲");
         Button moveDownButton = new Button("▼");
-        Button deleteButton = new Button("✕");
+        Button deleteButton   = new Button("✕");
 
         moveUpButton.setOnAction(e -> {
             int i = meetingPointListView.getSelectionModel().getSelectedIndex();
@@ -240,10 +242,11 @@ public class TripApp extends Application {
 
         Label travelDurationLabel = new Label();
         travelDurationLabel.setStyle("-fx-text-fill: #1a6fb5; -fx-font-weight: bold; -fx-font-size: 11px;");
+        travelDurationLabel.setWrapText(true);
         meetingPointListView.setUserData(travelDurationLabel);
         updateTravelDurationLabel(meetingPoints, meetingPointListView);
 
-        Button saveBtn = new Button("Save");
+        Button saveBtn   = new Button("Save");
         saveBtn.setStyle(
                 "-fx-background-color: #7F00FF; -fx-text-fill: white;" +
                         "-fx-cursor: hand; -fx-background-radius: 6;"
@@ -256,7 +259,7 @@ public class TripApp extends Application {
 
         saveBtn.setOnAction(e -> {
             LocalDate startDate = startDatePicker.getValue();
-            LocalDate endDate = endDatePicker.getValue();
+            LocalDate endDate   = endDatePicker.getValue();
 
             if (startDate == null || endDate == null) {
                 errorLabel.setText("Please select both dates!");
@@ -268,15 +271,19 @@ public class TripApp extends Application {
             }
 
             if (existing != null) {
+                existing.setStartDate(startDate);
+                existing.setEndDate(endDate);
+                existing.setDescription(descriptionField.getText());
+                existing.getMeetingPoints().setAll(meetingPoints);
                 int index = trips.indexOf(existing);
-                Trip updatedTrip = new Trip(startDate, endDate, descriptionField.getText());
-                updatedTrip.getMeetingPoints().setAll(meetingPoints);
-                trips.set(index, updatedTrip);
+                trips.set(index, existing);
             } else {
                 Trip newTrip = new Trip(startDate, endDate, descriptionField.getText());
                 newTrip.getMeetingPoints().setAll(meetingPoints);
                 trips.add(newTrip);
             }
+
+            TripStorage.save(trips);
             tripFormOverlay.setVisible(false);
         });
 
@@ -295,7 +302,7 @@ public class TripApp extends Application {
                 cardTitle,
                 new Separator(),
                 new Label("Start date:"), startDatePicker,
-                new Label("End date:"), endDatePicker,
+                new Label("End date:"),   endDatePicker,
                 new Label("Description:"), descriptionField,
                 new Separator(),
                 new Label("Meeting Points:"),
@@ -312,7 +319,6 @@ public class TripApp extends Application {
 
         card.setPadding(new Insets(20));
         card.setMaxWidth(380);
-        card.setMaxHeight(560);
         card.setStyle(
                 "-fx-background-color: white;" +
                         "-fx-background-radius: 12;" +
@@ -341,10 +347,21 @@ public class TripApp extends Application {
         HBox header = new HBox(heading, spacer, closeBtn);
         header.setAlignment(Pos.CENTER_LEFT);
 
-        VBox card = new VBox(12, header, tripListView);
+        // Delete selected trip button
+        Button deleteTrip = new Button("Delete selected");
+        deleteTrip.setStyle("-fx-cursor: hand; -fx-text-fill: #c00;");
+        deleteTrip.setOnAction(e -> {
+            Trip selected = tripListView.getSelectionModel().getSelectedItem();
+            if (selected != null) {
+                trips.remove(selected);
+                TripStorage.save(trips);
+            }
+        });
+
+        VBox card = new VBox(12, header, tripListView, deleteTrip);
         card.setPadding(new Insets(20));
         card.setMaxWidth(320);
-        card.setMaxHeight(300);
+        card.setMaxHeight(340);
         card.setStyle(
                 "-fx-background-color: white;" +
                         "-fx-background-radius: 12;" +
@@ -371,14 +388,14 @@ public class TripApp extends Application {
             return;
         }
 
-        StringBuilder sb = new StringBuilder("Estimated travel time: ");
+        StringBuilder sb = new StringBuilder("Travel time:  ");
         for (int i = 0; i < meetingPoints.size() - 1; i++) {
             LocalTime from = meetingPoints.get(i).getTime();
-            LocalTime to = meetingPoints.get(i + 1).getTime();
-            long minutes = ChronoUnit.MINUTES.between(from, to);
+            LocalTime to   = meetingPoints.get(i + 1).getTime();
+            long minutes   = ChronoUnit.MINUTES.between(from, to);
             if (minutes < 0) minutes += 24 * 60;
 
-            long hours = minutes / 60;
+            long hours            = minutes / 60;
             long remainingMinutes = minutes % 60;
 
             sb.append(meetingPoints.get(i).getLocation())
@@ -387,7 +404,7 @@ public class TripApp extends Application {
                     .append(": ");
             if (hours > 0) sb.append(hours).append("h ");
             sb.append(remainingMinutes).append("min");
-            if (i < meetingPoints.size() - 2) sb.append(" | ");
+            if (i < meetingPoints.size() - 2) sb.append("  |  ");
         }
 
         label.setText(sb.toString());
