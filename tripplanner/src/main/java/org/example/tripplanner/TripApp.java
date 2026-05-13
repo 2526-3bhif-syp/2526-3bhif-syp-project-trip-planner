@@ -141,13 +141,37 @@ public class TripApp extends Application {
     private static class TripListCell extends ListCell<Trip> {
         private final DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd MMM yyyy");
 
+        public TripListCell() {
+            selectedProperty().addListener((obs, wasSelected, isSelected) -> updateStyle(isSelected));
+        }
+
+        private void updateStyle(boolean selected) {
+            if (selected) {
+                setStyle(
+                        "-fx-background-color: #f0e6ff;" +
+                                "-fx-border-color: #b57bff;" +
+                                "-fx-border-width: 1;" +
+                                "-fx-border-radius: 8;" +
+                                "-fx-background-radius: 8;"
+                );
+            } else {
+                setStyle(
+                        "-fx-background-color: white;" +
+                                "-fx-border-color: #f0f0f0;" +
+                                "-fx-border-width: 0 0 1 0;" +
+                                "-fx-padding: 0;"
+                );
+            }
+        }
+
         @Override
         protected void updateItem(Trip trip, boolean empty) {
             super.updateItem(trip, empty);
+            updateStyle(isSelected());
+
             if (empty || trip == null) {
                 setGraphic(null);
                 setText(null);
-                setStyle("-fx-background-color: transparent;");
                 return;
             }
 
@@ -207,12 +231,7 @@ public class TripApp extends Application {
 
             setGraphic(cell);
             setText(null);
-            setStyle(
-                    "-fx-background-color: white;" +
-                            "-fx-border-color: #f0f0f0;" +
-                            "-fx-border-width: 0 0 1 0;" +
-                            "-fx-padding: 0;"
-            );
+            updateStyle(isSelected());
         }
     }
 
