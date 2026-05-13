@@ -123,7 +123,9 @@ public class TripApp extends Application {
         navBtn.setOnAction(e -> tripListOverlay.setVisible(true));
 
         StackPane root = new StackPane(mainContent, tripListOverlay, tripFormOverlay);
-        stage.setScene(new Scene(root, 450, 400));
+        stage.setMinWidth(640);
+        stage.setMinHeight(360);
+        stage.setScene(new Scene(root, 1000, 600));
         stage.show();
     }
 
