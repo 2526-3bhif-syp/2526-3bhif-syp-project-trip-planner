@@ -1,13 +1,20 @@
 package org.example.tripplanner;
 
+import javafx.animation.KeyFrame;
+import javafx.animation.KeyValue;
+import javafx.animation.RotateTransition;
+import javafx.animation.ScaleTransition;
+import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -24,9 +31,52 @@ public class TripApp extends Application {
         stage.setTitle("Trip Planner");
 
         ListView<Trip> tripListView = new ListView<>(trips);
+        VBox.setVgrow(tripListView, Priority.ALWAYS);
 
-        Button createTripButton = new Button("Create New Trip");
-        createTripButton.setOnAction(e -> openTripDialog(null));
+        // --- Plus Button ---
+        Button createTripButton = new Button("+");
+        createTripButton.setStyle(
+                "-fx-background-radius: 50em;" +
+                        "-fx-min-width: 50px;" +
+                        "-fx-min-height: 50px;" +
+                        "-fx-max-width: 50px;" +
+                        "-fx-max-height: 50px;" +
+                        "-fx-background-color: #7F00FF;" +
+                        "-fx-text-fill: white;" +
+                        "-fx-font-size: 22px;" +
+                        "-fx-cursor: hand;" +
+                        "-fx-effect: dropshadow(gaussian, rgba(127,0,255,0.4), 10, 0, 0, 3);"
+        );
+
+        // Hover Animation
+        ScaleTransition hoverIn = new ScaleTransition(Duration.millis(150), createTripButton);
+        hoverIn.setToX(1.15);
+        hoverIn.setToY(1.15);
+
+        ScaleTransition hoverOut = new ScaleTransition(Duration.millis(150), createTripButton);
+        hoverOut.setToX(1.0);
+        hoverOut.setToY(1.0);
+
+        createTripButton.setOnMouseEntered(e -> { hoverOut.stop(); hoverIn.play(); });
+        createTripButton.setOnMouseExited(e -> { hoverIn.stop(); hoverOut.play(); });
+
+        // Wobble Animation beim Klick
+        createTripButton.setOnAction(e -> {
+            Timeline wobble = new Timeline(
+                    new KeyFrame(Duration.millis(0),   new KeyValue(createTripButton.rotateProperty(), 0)),
+                    new KeyFrame(Duration.millis(80),  new KeyValue(createTripButton.rotateProperty(), -15)),
+                    new KeyFrame(Duration.millis(160), new KeyValue(createTripButton.rotateProperty(), 15)),
+                    new KeyFrame(Duration.millis(240), new KeyValue(createTripButton.rotateProperty(), -10)),
+                    new KeyFrame(Duration.millis(320), new KeyValue(createTripButton.rotateProperty(), 10)),
+                    new KeyFrame(Duration.millis(400), new KeyValue(createTripButton.rotateProperty(), 0))
+            );
+            wobble.setOnFinished(ev -> openTripDialog(null));
+            wobble.play();
+        });
+
+        HBox buttonBox = new HBox(createTripButton);
+        buttonBox.setAlignment(Pos.CENTER_RIGHT);
+        buttonBox.setPadding(new Insets(8, 0, 0, 0));
 
         // Double-click to edit
         tripListView.setOnMouseClicked(e -> {
@@ -35,22 +85,17 @@ public class TripApp extends Application {
             }
         });
 
-        VBox root = new VBox(10, createTripButton, tripListView);
-        root.setStyle("-fx-padding: 20;");
+        VBox root = new VBox(10, tripListView, buttonBox);
+        root.setPadding(new Insets(20));
 
         stage.setScene(new Scene(root, 450, 350));
         stage.show();
     }
 
-    /**
-     * Opens the create/edit dialog.
-     * @param existing null = new trip, otherwise the trip to edit
-     */
     private void openTripDialog(Trip existing) {
         Stage dialog = new Stage();
         dialog.setTitle(existing == null ? "New Trip" : "Edit Trip");
 
-        // ── Trip base data ────────────────────────────────────────────────
         DatePicker startDatePicker = new DatePicker();
         DatePicker endDatePicker = new DatePicker();
         TextField descriptionField = new TextField();
@@ -65,7 +110,6 @@ public class TripApp extends Application {
             descriptionField.setText(existing.getDescription());
         }
 
-        // ── Meeting points ────────────────────────────────────────────────
         ObservableList<MeetingPoint> meetingPoints = FXCollections.observableArrayList(
                 existing != null ? existing.getMeetingPoints() : FXCollections.emptyObservableList()
         );
@@ -82,7 +126,6 @@ public class TripApp extends Application {
         Label meetingPointErrorLabel = new Label();
         meetingPointErrorLabel.setStyle("-fx-text-fill: red;");
 
-        // Validate time format on focus lost
         timeField.focusedProperty().addListener((obs, oldFocused, newFocused) -> {
             if (!newFocused && !timeField.getText().isBlank()) {
                 try {
@@ -115,7 +158,6 @@ public class TripApp extends Application {
             }
         });
 
-        // ── Reorder buttons ───────────────────────────────────────────────
         Button moveUpButton = new Button("▲ Up");
         Button moveDownButton = new Button("▼ Down");
         Button deleteButton = new Button("✕ Delete");
@@ -150,13 +192,11 @@ public class TripApp extends Application {
 
         HBox reorderButtonBox = new HBox(5, moveUpButton, moveDownButton, deleteButton);
 
-        // ── Travel duration label ─────────────────────────────────────────
         Label travelDurationLabel = new Label();
         travelDurationLabel.setStyle("-fx-text-fill: #1a6fb5; -fx-font-weight: bold;");
         meetingPointListView.setUserData(travelDurationLabel);
         updateTravelDurationLabel(meetingPoints, meetingPointListView);
 
-        // ── Save ──────────────────────────────────────────────────────────
         Button saveButton = new Button("Save");
         Label errorLabel = new Label();
         errorLabel.setStyle("-fx-text-fill: red;");
@@ -188,7 +228,6 @@ public class TripApp extends Application {
             dialog.close();
         });
 
-        // ── Layout ────────────────────────────────────────────────────────
         HBox timeLocationBox = new HBox(5, timeField, locationField, addMeetingPointButton);
         HBox.setHgrow(locationField, Priority.ALWAYS);
 
@@ -214,10 +253,6 @@ public class TripApp extends Application {
         dialog.show();
     }
 
-    /**
-     * Calculates and displays the estimated travel duration between all meeting points.
-     * Only shown when at least 2 meeting points exist.
-     */
     private void updateTravelDurationLabel(ObservableList<MeetingPoint> meetingPoints,
                                            ListView<MeetingPoint> listView) {
         Label label = (Label) listView.getUserData();
@@ -234,9 +269,7 @@ public class TripApp extends Application {
             LocalTime to = meetingPoints.get(i + 1).getTime();
             long minutes = ChronoUnit.MINUTES.between(from, to);
 
-            if (minutes < 0) {
-                minutes += 24 * 60; // handle past midnight
-            }
+            if (minutes < 0) minutes += 24 * 60;
 
             long hours = minutes / 60;
             long remainingMinutes = minutes % 60;
@@ -246,14 +279,10 @@ public class TripApp extends Application {
                     .append(meetingPoints.get(i + 1).getLocation())
                     .append(": ");
 
-            if (hours > 0) {
-                sb.append(hours).append("h ");
-            }
+            if (hours > 0) sb.append(hours).append("h ");
             sb.append(remainingMinutes).append("min");
 
-            if (i < meetingPoints.size() - 2) {
-                sb.append(" | ");
-            }
+            if (i < meetingPoints.size() - 2) sb.append(" | ");
         }
 
         label.setText(sb.toString());
